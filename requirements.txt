@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+jinja2
+sqlalchemy
+python-multipart
+passlib[bcrypt]
+python-jose[cryptography]
+librosa
+mido
+soundfile
+aiofiles

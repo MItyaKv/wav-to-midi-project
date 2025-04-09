@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WAV to MIDI Converter</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>WAV to MIDI Converter</h1>
+
+        {% if user %}
+            <p>Welcome, {{ user.username }}! <a href="/logout" class="button secondary">Logout</a></p>
+            <form action="/upload/" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".wav" required>
+                <button type="submit">Convert to MIDI</button>
+            </form>
+        {% else %}
+            <div class="button-group">
+                <a href="/login" class="button">Login</a>
+                <a href="/register" class="button">Register</a>
+            </div>
+        {% endif %}
+
+        {% if download_link %}
+            <p><a href="{{ download_link }}" class="button">Download MIDI file</a></p>
+        {% endif %}
+    </div>
+</body>
+</html>
