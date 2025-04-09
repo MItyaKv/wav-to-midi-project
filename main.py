@@ -13,6 +13,7 @@ import mido
 import soundfile as sf
 from datetime import datetime, timedelta
 import numpy as np
+from collections import defaultdict
 
 # --- Config ---
 SECRET_KEY = "supersecretkey"
@@ -125,36 +126,68 @@ def upload_file(request: Request, file: UploadFile = File(...)):
     frame_size = 2048
     hop_length = 512
     window = np.hanning(frame_size)
-    energy = []
     threshold = 0.02
-    onsets = []
+
+    energy = []
+    pitches = []
+    times = []
 
     for i in range(0, len(y) - frame_size, hop_length):
         frame = y[i:i+frame_size] * window
         spectrum = np.fft.rfft(frame)
         mag = np.abs(spectrum)
-        energy.append(np.sum(mag))
+        energy_val = np.sum(mag)
+        energy.append(energy_val)
+
+        freq_res = sr / frame_size
+        peak_index = np.argmax(mag)
+        freq = peak_index * freq_res
+        pitch = 69 + 12 * np.log2(freq / 440.0) if freq > 0 else 60
+        pitches.append(int(round(pitch)))
+        times.append(i / sr)
 
     energy = np.array(energy)
-    energy_diff = np.diff(energy)
-    energy_diff = np.append(0, energy_diff)
+    energy_diff = np.diff(energy, prepend=0)
+
+    notes = []
+    note_active = False
+    note_start_time = 0
+    note_pitch = 0
 
     for i in range(1, len(energy_diff)):
-        if energy_diff[i] > threshold and energy_diff[i - 1] <= threshold:
-            t = (i * hop_length) / sr
-            onsets.append(t)
+        t = times[i]
+        pitch = pitches[i]
+
+        if energy_diff[i] > threshold and not note_active:
+            note_active = True
+            note_start_time = t
+            note_pitch = pitch
+
+        elif energy_diff[i] <= threshold and note_active:
+            duration = t - note_start_time
+            notes.append((note_start_time, note_pitch, duration))
+            note_active = False
+
+    # Group notes into chords if they occur close in time
+    chord_groups = defaultdict(list)
+    for start, pitch, duration in notes:
+        bucket = round(start * 2) / 2  # 0.5s resolution
+        chord_groups[bucket].append((pitch, duration))
 
     mid = mido.MidiFile()
     track = mido.MidiTrack()
     mid.tracks.append(track)
 
-    prev_ticks = 0
-    for t in onsets:
-        ticks = int(mido.second2tick(t, 480, mido.bpm2tempo(120)))
-        delta = ticks - prev_ticks
-        track.append(mido.Message('note_on', note=60, velocity=64, time=delta))
-        track.append(mido.Message('note_off', note=60, velocity=64, time=100))
-        prev_ticks = ticks
+    prev_tick = 0
+    for bucket_time in sorted(chord_groups.keys()):
+        tick = int(mido.second2tick(bucket_time, 480, mido.bpm2tempo(120)))
+        delta = tick - prev_tick
+        for pitch, duration in chord_groups[bucket_time]:
+            track.append(mido.Message('note_on', note=pitch, velocity=64, time=delta))
+            duration_ticks = int(mido.second2tick(duration, 480, mido.bpm2tempo(120)))
+            track.append(mido.Message('note_off', note=pitch, velocity=64, time=duration_ticks))
+            delta = 0  # Subsequent notes in chord play together
+        prev_tick = tick + duration_ticks
 
     mid.save(midi_path)
 
