@@ -1,11 +1,9 @@
 fastapi
 uvicorn
-jinja2
 sqlalchemy
-python-multipart
-passlib[bcrypt]
-python-jose[cryptography]
-librosa
+passlib
+python-jose
+jinja2
 mido
+numpy
 soundfile
-aiofiles

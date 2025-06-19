@@ -13,7 +13,6 @@ import mido
 import soundfile as sf
 from datetime import datetime, timedelta
 import numpy as np
-from collections import defaultdict
 
 # --- Config ---
 SECRET_KEY = "supersecretkey"
@@ -105,6 +104,16 @@ def logout():
     response.delete_cookie("access_token")
     return response
 
+@app.get("/profile", response_class=HTMLResponse)
+def profile(request: Request):
+    db = SessionLocal()
+    user = get_current_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import Conversion
+    conversions = db.query(Conversion).filter(Conversion.user_id == user.id).order_by(Conversion.created_at.desc()).all()
+    return templates.TemplateResponse("profile.html", {"request": request, "user": user, "conversions": conversions})
+
 @app.post("/upload/", response_class=HTMLResponse)
 def upload_file(request: Request, file: UploadFile = File(...)):
     db = SessionLocal()
@@ -127,6 +136,7 @@ def upload_file(request: Request, file: UploadFile = File(...)):
     hop_length = 512
     window = np.hanning(frame_size)
     threshold = 0.02
+    onsets = []
 
     energy = []
     pitches = []
@@ -149,47 +159,30 @@ def upload_file(request: Request, file: UploadFile = File(...)):
     energy = np.array(energy)
     energy_diff = np.diff(energy, prepend=0)
 
-    notes = []
-    note_active = False
-    note_start_time = 0
-    note_pitch = 0
-
     for i in range(1, len(energy_diff)):
-        t = times[i]
-        pitch = pitches[i]
-
-        if energy_diff[i] > threshold and not note_active:
-            note_active = True
-            note_start_time = t
-            note_pitch = pitch
-
-        elif energy_diff[i] <= threshold and note_active:
-            duration = t - note_start_time
-            notes.append((note_start_time, note_pitch, duration))
-            note_active = False
-
-    # Group notes into chords if they occur close in time
-    chord_groups = defaultdict(list)
-    for start, pitch, duration in notes:
-        bucket = round(start * 2) / 2  # 0.5s resolution
-        chord_groups[bucket].append((pitch, duration))
+        if energy_diff[i] > threshold and energy_diff[i - 1] <= threshold:
+            t = times[i]
+            note = pitches[i]
+            onsets.append((t, note))
 
     mid = mido.MidiFile()
     track = mido.MidiTrack()
     mid.tracks.append(track)
 
-    prev_tick = 0
-    for bucket_time in sorted(chord_groups.keys()):
-        tick = int(mido.second2tick(bucket_time, 480, mido.bpm2tempo(120)))
-        delta = tick - prev_tick
-        for pitch, duration in chord_groups[bucket_time]:
-            track.append(mido.Message('note_on', note=pitch, velocity=64, time=delta))
-            duration_ticks = int(mido.second2tick(duration, 480, mido.bpm2tempo(120)))
-            track.append(mido.Message('note_off', note=pitch, velocity=64, time=duration_ticks))
-            delta = 0  # Subsequent notes in chord play together
-        prev_tick = tick + duration_ticks
+    prev_ticks = 0
+    for t, note in onsets:
+        ticks = int(mido.second2tick(t, 480, mido.bpm2tempo(120)))
+        delta = ticks - prev_ticks
+        track.append(mido.Message('note_on', note=note, velocity=64, time=delta))
+        track.append(mido.Message('note_off', note=note, velocity=64, time=100))
+        prev_ticks = ticks
 
     mid.save(midi_path)
+
+    from models import Conversion
+    conv = Conversion(filename=file.filename, file_id=file_id, user_id=user.id)
+    db.add(conv)
+    db.commit()
 
     return templates.TemplateResponse("index.html", {
         "request": request,

@@ -1,53 +1,70 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
+    font-family: "Segoe UI", "Raleway", sans-serif;
+    background: linear-gradient(135deg, #fdf6e3, #f0ece2);
     margin: 0;
     padding: 0;
+    color: #2c2c2c;
 }
 
 .container {
     max-width: 600px;
-    margin: 50px auto;
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 40px auto;
+    background: #ffffffd9;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
-h1, h2 {
-    text-align: center;
-    color: #333;
+h1, h2, h3 {
+    color: #3b3b3b;
+    font-weight: 700;
 }
 
 form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    margin-top: 20px;
 }
 
 input[type="text"],
 input[type="password"],
 input[type="file"] {
-    padding: 0.6rem;
-    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 15px;
     border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 0.7rem;
+button,
+a.btn,
+input[type="submit"] {
+    padding: 12px 20px;
+    background: #ff835f;
+    color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
+    font-weight: bold;
     cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.3s ease;
 }
 
-button:hover {
-    background-color: #45a049;
+button:hover,
+a.btn:hover,
+input[type="submit"]:hover {
+    background: #e6633b;
+}
+
+.error {
+    color: #d9534f;
+    font-weight: bold;
+    margin-top: 10px;
 }
 
 a {
-    color: #4CAF50;
+    color: #3273dc;
     text-decoration: none;
 }
 
@@ -55,36 +72,35 @@ a:hover {
     text-decoration: underline;
 }
 
-.message {
-    color: red;
-    text-align: center;
-}
-.button-group {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1.5rem;
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
-.button {
-    display: inline-block;
-    padding: 0.7rem 1.2rem;
-    background-color: #4CAF50;
-    color: white;
-    text-align: center;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
+table th,
+table td {
+    padding: 10px;
+    border: 1px solid #ccc;
 }
 
-.button:hover {
-    background-color: #45a049;
+table tr:nth-child(even) {
+    background: #f7f7f7;
 }
 
-.button.secondary {
-    background-color: #777;
+table tr:hover {
+    background: #ffecd6;
 }
 
-.button.secondary:hover {
-    background-color: #666;
+@media screen and (max-width: 600px) {
+    .container {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    button,
+    input,
+    a.btn {
+        width: 100%;
+    }
 }

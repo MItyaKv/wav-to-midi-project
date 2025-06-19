@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Личный кабинет {{ user.username }}</h2>
+        <p><a href="/">← На главную</a> | <a href="/logout">Выйти</a></p>
+
+        {% if conversions %}
+            <h3>Ваши загруженные файлы:</h3>
+            <table>
+                <tr>
+                    <th>Имя файла</th>
+                    <th>Дата</th>
+                    <th>Скачать</th>
+                </tr>
+                {% for conv in conversions %}
+                <tr>
+                    <td>{{ conv.filename }}</td>
+                    <td>{{ conv.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
+                    <td><a href="/download/{{ conv.file_id }}">Скачать</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>Вы ещё не загружали файлы.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
