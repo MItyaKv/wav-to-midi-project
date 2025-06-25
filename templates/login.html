@@ -1,22 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <title>Вход</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="container">
-        <h2>Вход</h2>
-        <form action="/login" method="post">
-            <input type="text" name="username" placeholder="Имя пользователя" required>
-            <input type="password" name="password" placeholder="Пароль" required>
-            <button type="submit">Войти</button>
-        </form>
-        {% if error %}
-            <p class="error">{{ error }}</p>
-        {% endif %}
-        <p><a href="/register">Регистрация</a></p>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="logo">WAV <span class="highlight">→</span> MIDI</h1>
+            <nav class="user-nav">
+                <a href="/" class="nav-link">Главная</a>
+                <a href="/register" class="nav-link">Регистрация</a>
+                <button id="toggle-theme">Тёмная/Светлая тема</button>
+            </nav>
+        </header>
+
+        <main class="converter-section">
+            <div class="upload-card">
+                <h2>Вход</h2>
+                <form action="/login" method="post">
+                    <input type="text" name="username" placeholder="Имя пользователя" required>
+                    <input type="password" name="password" placeholder="Пароль" required>
+                    <button type="submit" class="convert-btn">Войти</button>
+                </form>
+                {% if error %}
+                    <p class="error">{{ error }}</p>
+                {% endif %}
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <p>© 2025 | Audio Converter</p>
+        </footer>
     </div>
+
+    <script>
+        // Применить тему при загрузке
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        // Кнопка переключения темы
+        const toggle = document.getElementById('toggle-theme');
+        if (toggle) {
+            toggle.onclick = () => {
+                const html = document.documentElement;
+                const newTheme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+                html.dataset.theme = newTheme;
+                localStorage.setItem('theme', newTheme); // Сохраняем выбор
+            };
+        }
+    </script>
 </body>
 </html>

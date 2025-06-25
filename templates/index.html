@@ -1,28 +1,87 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>WAV to MIDI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIDI | Конвертер</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>WAV → MIDI конвертер</h1>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="logo">WAV, MP3 <span class="highlight">→</span> MIDI</h1>
+            <div class="user-nav">
+                {% if user %}
+                    <a href="/profile" class="nav-link">{{ user.username }}</a>
+                    <a href="/logout" class="nav-link">Выйти</a>
+                {% else %}
+                    <a href="/login" class="nav-link">Вход</a>
+                    <a href="/register" class="nav-link primary">Регистрация</a>
+                {% endif %}
+                <button id="toggle-theme">Тёмная/Светлая тема</button>
+            </div>
+        </header>
 
-        {% if user %}
-            <p><a href="/profile">Мой профиль</a></p>
-            <p>Вы вошли как <strong>{{ user.username }}</strong></p>
-            <form action="/upload/" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" accept=".wav" required>
-                <button type="submit">Загрузить</button>
-            </form>
-            {% if download_link %}
-                <p><a href="{{ download_link }}">Скачать MIDI</a></p>
+        <main class="converter-section">
+            {% if user %}
+                <div class="upload-card">
+                    <h2>Конвертируй свой файл</h2>
+                    <form action="/upload/" method="post" enctype="multipart/form-data" class="dropzone">
+                        <label class="file-label">
+                            <input type="file" name="file" accept=".wav, .mp3" required>
+                            <span>Выбрать WAV, MP3 файл</span>
+                        </label>
+                        <label for="instrument">Выберите инструмент:</label>
+                        <select name="instrument" id="instrument" required>
+                            <option value="0">Фортепиано</option>
+                            <option value="24">Нейлоновая гитара</option>
+                            <option value="40">Скрипка</option>
+                            <option value="41">Альт</option>
+                            <option value="42">Виолончель</option>
+                            <option value="48">Струнный ансамбль</option>
+                            <option value="56">Труба</option>
+                            <option value="60">Валторна</option>
+                            <option value="64">Сопрано-саксофон</option>
+                            <option value="73">Флейта</option>
+                            <option value="80">Синт-лид «Квадрат»</option>
+                            <option value="81">Синт-лид «Пила»</option>
+                        </select>
+                        <button type="submit" class="convert-btn">Конвертировать</button>
+                    </form>
+                    {% if download_link %}
+                        <p><a class="download-btn" href="{{ download_link }}">Скачать MIDI</a></p>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="auth-promo centered">
+                    <h2>Добро пожаловать в WAV→MIDI</h2>
+                    <p>Зарегистрируйтесь для использования сервиса</p>
+                </div>
             {% endif %}
-            <p><a href="/logout">Выйти</a></p>
-        {% else %}
-            <p><a class="btn" href="/login">Вход</a> | <a class="btn" href="/register">Регистрация</a></p>
-        {% endif %}
+        </main>
+
+        <footer class="app-footer">
+            <p>© 2025 | Audio Converter</p>
+        </footer>
     </div>
+
+    <script>
+        // Применить тему при загрузке
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        // Кнопка переключения темы
+        const toggle = document.getElementById('toggle-theme');
+        if (toggle) {
+            toggle.onclick = () => {
+                const html = document.documentElement;
+                const newTheme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+                html.dataset.theme = newTheme;
+                localStorage.setItem('theme', newTheme); // Сохраняем выбор
+            };
+        }
+    </script>
 </body>
 </html>

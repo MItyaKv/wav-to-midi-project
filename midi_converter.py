@@ -2,7 +2,7 @@ import numpy as np
 import soundfile as sf
 import mido
 
-def convert_wav_to_midi(wav_path, midi_path):
+def convert_wav_to_midi(wav_path, midi_path, instrument=0):
     y, sr = sf.read(wav_path)
     if len(y.shape) > 1:
         y = np.mean(y, axis=1)
@@ -42,7 +42,7 @@ def convert_wav_to_midi(wav_path, midi_path):
     mid = mido.MidiFile()
     track = mido.MidiTrack()
     mid.tracks.append(track)
-
+    track.append(mido.Message('program_change', program=instrument, time=0))
     prev_ticks = 0
     for t, note in onsets:
         ticks = int(mido.second2tick(t, 480, mido.bpm2tempo(120)))

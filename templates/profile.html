@@ -1,34 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <title>Личный кабинет</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="container">
-        <h2>Личный кабинет {{ user.username }}</h2>
-        <p><a href="/">← На главную</a> | <a href="/logout">Выйти</a></p>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="logo">AudioConverter</span></h1>
+            <nav class="user-nav">
+                <a href="/" class="nav-link">Главная</a>
+                <a href="/logout" class="nav-link">Выйти</a>
+                <button id="toggle-theme">Тёмная/Светлая тема</button>
+            </nav>
+        </header>
 
-        {% if conversions %}
-            <h3>Ваши загруженные файлы:</h3>
-            <table>
-                <tr>
-                    <th>Имя файла</th>
-                    <th>Дата</th>
-                    <th>Скачать</th>
-                </tr>
-                {% for conv in conversions %}
-                <tr>
-                    <td>{{ conv.filename }}</td>
-                    <td>{{ conv.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
-                    <td><a href="/download/{{ conv.file_id }}">Скачать</a></td>
-                </tr>
-                {% endfor %}
-            </table>
-        {% else %}
-            <p>Вы ещё не загружали файлы.</p>
-        {% endif %}
+        <main class="converter-section">
+            <h2>Добро пожаловать, {{ user.username }}!</h2>
+            {% if conversions %}
+                <div class="upload-card">
+                    <h3>Ваши загруженные файлы</h3>
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th>Имя файла</th>
+                                <th>Дата</th>
+                                <th>Скачать</th>
+                                <th>Удалить</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for conv in conversions %}
+                            <tr>
+                                <td>{{ conv.filename }}</td>
+                                <td>{{ conv.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
+                                <td><a href="/download/{{ conv.file_id }}" class="download-btn">Скачать</a></td>
+                                <td>
+                                    <form action="/delete/{{ conv.file_id }}" method="post" style="display:inline;">
+                                        <button class="delete-btn"
+                                                onclick="return confirm('Удалить файл?');">
+                                            Удалить
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>Вы ещё не загружали файлы.</p>
+            {% endif %}
+        </main>
+
+        <footer class="app-footer">
+            <p>© 2025 | Audio Converter</p>
+        </footer>
     </div>
+
+    <script>
+        // Применить тему при загрузке
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        // Кнопка переключения темы
+        const toggle = document.getElementById('toggle-theme');
+        if (toggle) {
+            toggle.onclick = () => {
+                const html = document.documentElement;
+                const newTheme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+                html.dataset.theme = newTheme;
+                localStorage.setItem('theme', newTheme); // Сохраняем выбор
+            };
+        }
+    </script>
 </body>
 </html>

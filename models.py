@@ -16,6 +16,28 @@ class User(Base):
     hashed_password = Column(String)
     conversions = relationship("Conversion", back_populates="user")
 
+    @classmethod
+    def create(cls, db: Session, username: str, password: str):
+        """
+        Создает нового пользователя и сохраняет его в базе данных.
+        """
+        hashed_password = bcrypt.hash(password)
+        new_user = cls(username=username, hashed_password=hashed_password)
+        db.add(new_user)
+        db.commit()
+        return new_user
+
+    @classmethod
+    def authenticate(cls, db: Session, username: str, password: str):
+        """
+        Аутентификация пользователя по имени и паролю.
+        Возвращает пользователя, если он существует и пароль верный.
+        """
+        user = db.query(User).filter(User.username == username).first()
+        if user and bcrypt.verify(password, user.hashed_password):
+            return user
+        return None
+
 class Conversion(Base):
     __tablename__ = "conversions"
     id = Column(Integer, primary_key=True)
